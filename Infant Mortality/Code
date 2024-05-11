@@ -1,0 +1,712 @@
+library(data.table)
+
+# Sweep the broom
+
+rm(list = ls())
+
+# Read data in
+
+dat <- fread("Data/2021 Patient Data.txt")
+head(dat)
+ncol(dat)
+# Get rid of spaces in the Column Headers
+
+colnames(dat) <- gsub(" ", "_", colnames(dat))
+
+head(dat)
+ncol(dat) # matches raw file
+nrow(dat) # matches raw file
+
+# get unique values for each column
+#ulst <- lapply(dat, unique)
+#ulst
+
+# adding a field for year + month as this will be useful for trending
+dat$month_year<-as.Date(with(dat,paste(Year,Month,'01',sep="-")),"%Y-%m-%d")
+
+# assuming Time is time of delivery, we see 9999,9998, 9909, and blanks. I think 0 is legit.
+# for purposes of categorization of unknown times, I will set the above to all be 9999
+dat$Time[dat$Time == 9998] = 9999
+dat$Time[dat$Time == 9909] = 9999
+dat$Time[is.na(dat$Time)] = 9999
+
+# see NA facilities. Will code them to 9999
+dat$Facility[dat$Facility == 9] = 9999
+dat$Facility[dat$Facility == 7] = 9999
+dat$Facility[is.na(dat$Facility)] = 9999
+
+# About 540 of these
+# dat$Facility[dat$Facility == 9999]
+
+
+########## Mothers Race
+
+# recode to handle NAs (NOT NEEDED)
+#dat$Mothers.Race[is.na(dat$Mothers_Race) = 9999]
+#dat$Mothers_Race[dat$Mothers_Race == 9999]
+
+dat$Mothers.Race <- dat$Mothers_Race
+dat$Mothers.Race.White <- ifelse(dat$Mothers.Race == 1,1,0)
+dat$Mothers.Race.Black <- ifelse(dat$Mothers.Race == 2,1,0)
+dat$Mothers.Race.Aian <- ifelse(dat$Mothers.Race == 3,1,0)
+dat$Mothers.Race.Asian <- ifelse(dat$Mothers.Race == 4,1,0)
+dat$Mothers.Race.Nhopi <- ifelse(dat$Mothers.Race == 5,1,0)
+dat$Mothers.Race.multi <- ifelse(dat$Mothers.Race == 6,1,0)
+
+
+########## Mothers Education
+
+# recode to handle NAs (NOT NEEDED)
+#dat$Mothers.Education[is.na(dat$Mothers_Education)] = 9999
+#dat$Mothers_Education[dat$Mothers_Education == 9999]
+
+dat$Mothers.Education <- dat$Mothers_Education
+dat$Mothers.Education.LessThan8th <- ifelse(dat$Mothers.Education == 1,1,0)
+dat$Mothers.Education.HighSchoolNoDiploma <- ifelse(dat$Mothers.Education == 2,1,0)
+dat$Mothers.Education.HighSchoolGradOrGed <- ifelse(dat$Mothers.Education == 3,1,0)
+dat$Mothers.Education.SomeCollegeNoDegree <- ifelse(dat$Mothers.Education == 4,1,0)
+dat$Mothers.Education.AssociateDegree <- ifelse(dat$Mothers.Education == 5,1,0)
+dat$Mothers.Education.BachelorScience <- ifelse(dat$Mothers.Education == 6,1,0)
+dat$Mothers.Education.Masters <- ifelse(dat$Mothers.Education == 7,1,0)
+dat$Mothers.Education.Doctorate <- ifelse(dat$Mothers.Education == 8,1,0)
+dat$Mothers.Education.Unknown <- ifelse(dat$Mothers.Education == 9,1,0)
+
+
+########## Mothers Interval Since Last Birth
+
+# Measured in Months - not a factor
+
+
+########## Mothers PreNatal CAre Began (how many months ago - not a factor)
+
+# recode to handle NAs (NOT NEEDED)
+#dat$Monthly.PreNatal.Care.egan[is.na(dat$Monthly_PreNatal_Care_egan)] = 9999
+#dat$Monthly_PreNatal_Care_egan[dat$Monthly_PreNatal_Care_egan == 9999]
+
+
+########## Cigarettes before pregnancy (not a factor - number of cigarettes daily)
+
+# recode to handle NAs (NOT NEEDED)
+#dat$Cigarettes.before_pregnancy[is.na(dat$Cigarettes_before_pregnancy)] = 9999
+#dat$Cigarettes_before_pregnancy[dat$Cigarettes_before_pregnancy == 9999]
+
+
+########## Mother's height in inches (not a factor)
+
+# recode to handle NAs (NOT NEEDED)
+#dat$Mothers.Height[is.na(dat$Mothers_Height)] = 9999
+#dat$Mothers_Height[dat$Mothers_Height == 9999]
+
+
+########## Mother's BMI (not a factor)
+
+# recode to handle NAs (NOT NEEDED)
+#dat$Mothers.BMI[is.na(dat$Mothesr_BMI)] = 9999
+#dat$Mothers_BMI[dat$Mothers_BMI == 9999]
+
+
+########## Risk.Factor.Diabetes
+
+#dat$Risk.Factor.Diabetes <- dat$Risk_Factor_Diabetes[is.na(dat$Risk_Factor_Diabetes)] = 9999
+#dat$Risk.Factor.Diabetes <- dat$Risk_Factor_Diabetes[dat$Risk_Factor_Diabetes == ' '] = 9999
+#dat$Risk.Factor.Diabetes <- dat$Risk_Factor_Diabetes[dat$Risk_Factor_Diabetes == 'Y'] = 1
+#dat$Risk.Factor.Diabetes <- dat$Risk_Factor_Diabetes[dat$Risk_Factor_Diabetes == 'N'] = 2
+#dat$Risk.Factor.Diabetes <- dat$Risk_Factor_Diabetes[dat$Risk_Factor_Diabetes == 'U'] = 9
+
+dat$Risk.Factor.Diabetes <- ifelse(is.na(dat$Risk_Factor_Diabetes),9999,
+                                   ifelse(dat$Risk_Factor_Diabetes == ' ',9999,       
+                                          ifelse(dat$Risk_Factor_Diabetes == 'Y',1,       
+                                                 ifelse(dat$Risk_Factor_Diabetes == 'N',2,       
+                                                        9))))
+
+dat$Risk.Factor.Diabetes.Unknown <- ifelse(dat$Risk.Factor.Diabetes == 9,1,0)
+dat$Risk.Factor.Diabetes.Yes <- ifelse(dat$Risk.Factor.Diabetes == 1,1,0)
+dat$Risk.Factor.Diabetes.No <- ifelse(dat$Risk.Factor.Diabetes == 2,1,0)
+
+# There are not any records in the next line that is commented out
+# dat$Risk.Factor.Diabetes[dat$Risk.Factor.Diabetes == 9999]
+
+
+
+########## Risk.Factor.Gestational.Diabetes
+
+# recode risk for gestational diabetes to 1 (Y), 2 (N) , 9 (not stated) map to codes in data definitions and handle NAs
+
+
+#dat$Risk.Factor.Gestational.Diabetes[is.na(dat$Risk.Factor.Gestational.Diabetes)] = 9999
+#dat$Risk.Factor.Gestational.Diabetes[dat$Risk.Factor.Gestational.Diabetes == ' '] = 9999
+#dat$Risk.Factor.Gestational.Diabetes[dat$Risk.Factor.Gestational.Diabetes == 'Y'] = 1
+#dat$Risk.Factor.Gestational.Diabetes[dat$Risk.Factor.Gestational.Diabetes == 'N'] = 2
+#dat$Risk.Factor.Gestational.Diabetes[dat$Risk.Factor.Gestational.Diabetes == 'U'] = 9
+
+dat$Risk.Factor.Gestational.Diabetes <- ifelse(is.na(dat$Risk_Factor_Gestational_Diabetes),9999,
+                                               ifelse(dat$Risk_Factor_Gestational_Diabetes == '',9999,       
+                                                      ifelse(dat$Risk_Factor_Gestational_Diabetes == 'Y',1,       
+                                                             ifelse(dat$Risk_Factor_Gestational_Diabetes == 'N',2,       
+                                                                    9))))
+
+# There are not any records in the next line that is commented out
+# dat$Risk.Factor.Gestational.Diabetes[dat$Risk.Factor.Gestational.Diabetes == 9999]
+
+dat$Risk.Factor.Gestational.Diabetes.Unknown <- ifelse(dat$Risk.Factor.Gestational.Diabetes == 9,1,0)
+dat$Risk.Factor.Gestational.Diabetes.Yes <- ifelse(dat$Risk.Factor.Gestational.Diabetes == 1,1,0)
+dat$Risk.Factor.Gestational.Diabetes.No <- ifelse(dat$Risk.Factor.Gestational.Diabetes == 2,1,0)
+
+
+
+########## PrePregnancy.Hypertension
+
+# recode risk for pre-preg-hypertension
+
+#dat$PrePregnancy.Hypertension[is.na(dat$PrePregnancy.Hypertension)] = 9999
+#dat$PrePregnancy.Hypertension[dat$PrePregnancy.Hypertension == ' '] = 9999
+#dat$PrePregnancy.Hypertension[dat$PrePregnancy.Hypertension == 'Y'] = 1
+#dat$PrePregnancy.Hypertension[dat$PrePregnancy.Hypertension == 'N'] = 2
+#dat$PrePregnancy.Hypertension[dat$PrePregnancy.Hypertension == 'U'] = 9
+
+dat$PrePregnancy.Hypertension <- ifelse(is.na(dat$PrePregnancy_Hypertension),9999,
+                                        ifelse(dat$PrePregnancy_Hypertension == ' ',9999,       
+                                               ifelse(dat$PrePregnancy_Hypertension == 'Y',1,       
+                                                      ifelse(dat$PrePregnancy_Hypertension == 'N',2,       
+                                                             9))))
+
+# There are not any records in the next line that is commented out
+# dat$PrePregnancy.Hypertension[dat$PrePregnancy.Hypertension == 9999]
+
+dat$PrePregnancy.Hypertension.Unknown <- ifelse(dat$PrePregnancy.Hypertension == 9,1,0)
+dat$PrePregnancy.Hypertension.Yes <- ifelse(dat$PrePregnancy.Hypertension == 1,1,0)
+dat$PrePregnancy.Hypertension.No <- ifelse(dat$PrePregnancy.Hypertension == 2,1,0)
+
+
+########## Risk.Factor.Gestational.Hypertension
+
+# recode risk for gestational hypertension map to codes in data definitions and handle NAs
+#dat$Risk.Factor.Gestational.Hypertension[is.na(dat$Risk.Factor.Gestational.Hypertension)] = 9999
+#dat$Risk.Factor.Gestational.Hypertension[dat$Risk.Factor.Gestational.Hypertension == ' '] = 9999
+#dat$Risk.Factor.Gestational.Hypertension[dat$Risk.Factor.Gestational.Hypertension == 'Y'] = 1
+#dat$Risk.Factor.Gestational.Hypertension[dat$Risk.Factor.Gestational.Hypertension == 'N'] = 2
+#dat$Risk.Factor.Gestational.Hypertension[dat$Risk.Factor.Gestational.Hypertension == 'U'] = 9
+
+dat$Risk.Factor.Gestational.Hypertension <- ifelse(is.na(dat$Risk_Factor_Gestational_Hypertension),9999,
+                                                   ifelse(dat$Risk_Factor_Gestational_Hypertension == ' ',9999,       
+                                                          ifelse(dat$Risk_Factor_Gestational_Hypertension == 'Y',1,       
+                                                                 ifelse(dat$Risk_Factor_Gestational_Hypertension == 'N',2,       
+                                                                        9))))
+
+# There are a lot of records in the next line that is commented out
+# dat$Risk.Factor.Gestational.Hypertension[dat$Risk.Factor.Gestational.Hypertension == 9999]
+
+dat$Risk.Factor.Gestational.Hypertension.Unknown <- ifelse(dat$Risk.Factor.Gestational.Hypertension == 9 | 
+                                                             dat$Risk.Factor.Gestational.Hypertension == 9999,1,0)
+dat$Risk.Factor.Gestational.Hypertension.Yes <- ifelse(dat$Risk.Factor.Gestational.Hypertension == 1,1,0)
+dat$Risk.Factor.Gestational.Hypertension.No <- ifelse(dat$Risk.Factor.Gestational.Hypertension == 2,1,0)
+
+
+########## Risk.Factor.Gestational.Eclampsia
+
+
+# recode risk for  hypertension eclampsia
+
+dat$Risk.Factor.Hypertension.Eclampsia  <- ifelse(is.na(dat$Risk_Factor_Hypertension_Eclampsia),9999,
+                                                  ifelse(dat$Risk_Factor_Hypertension_Eclampsia == ' ',9999,       
+                                                         ifelse(dat$Risk_Factor_Hypertension_Eclampsia == 'Y',1,       
+                                                                ifelse(dat$Risk_Factor_Hypertension_Eclampsia == 'N',2,       
+                                                                       9))))
+
+# There are a lot of records in the next line that is commented out
+# dat$Risk.Factor.Hypertension.Eclampsia[dat$Risk.Factor.Hypertension.Eclampsia == 9999]
+
+dat$Risk.Factor.Hypertension.Eclampsia.Unknown <- ifelse(dat$Risk.Factor.Hypertension.Eclampsia == 9 | 
+                                                           dat$Risk.Factor.Hypertension.Eclampsia == 9999,1,0)
+dat$Risk.Factor.Hypertension.Eclampsia.Yes <- ifelse(dat$Risk.Factor.Gestational.Hypertension == 1,1,0)
+dat$Risk.Factor.Hypertension.Eclampsia.No <- ifelse(dat$Risk.Factor.Gestational.Hypertension == 2,1,0)
+
+
+########## Risk.Factor.Infertility.Treatment
+
+# recode risk for infertility treatment map to codes in data definitions and handle NAs
+#dat$Risk.Factor.Infertility.Treatment[is.na(dat$Risk.Factor.Infertility.Treatment)] = 9999
+#dat$Risk.Factor.Infertility.Treatment[dat$Risk.Factor.Infertility.Treatment == ' '] = 9999
+#dat$Risk.Factor.Infertility.Treatment[dat$Risk.Factor.Infertility.Treatment == 'Y'] = 1
+#dat$Risk.Factor.Infertility.Treatment[dat$Risk.Factor.Infertility.Treatment == 'N'] = 2
+#dat$Risk.Factor.Infertility.Treatment[dat$Risk.Factor.Infertility.Treatment == 'U'] = 9
+
+dat$Risk.Factor.Infertility.Treatment  <- ifelse(is.na(dat$Risk_Factor_Infertility_Treatment),9999,
+                                                 ifelse(dat$Risk_Factor_Infertility_Treatment == ' ',9999,       
+                                                        ifelse(dat$Risk_Factor_Infertility_Treatment == 'Y',1,       
+                                                               ifelse(dat$Risk_Factor_Infertility_Treatment == 'N',2,       
+                                                                      9))))
+
+# There are a lot of records in the next line that is commented out
+# dat$Risk.Factor.Infertility.Treatment[dat$Risk.Factor.Hypertension.Eclampsia == 9999]
+
+dat$Risk.Factor.Infertility.Treatment.Unknown <- ifelse(dat$Risk.Factor.Infertility.Treatment == 9 | 
+                                                          dat$Risk.Factor.Infertility.Treatment == 9999,1,0)
+dat$Risk.Factor.Infertility.Treatment.Yes <- ifelse(dat$Risk.Factor.Infertility.Treatment == 1,1,0)
+dat$Risk.Factor.Infertility.Treatment.No <- ifelse(dat$Risk.Factor.Infertility.Treatment == 2,1,0)
+
+
+########## Risk.Factor.Infertility.Drugs
+
+# recode risk for fertility drugs map to codes in data definitions and handle NAs
+#dat$Risk.Factor.Fertility.Drugs[is.na(dat$Risk_Factor_Fertility_Drugs)] = 9999
+#dat$Risk.Factor.Fertility.Drugs[dat$Risk_Factor_Fertility_Drugs == ' '] = 9999
+#dat$Risk.Factor.Fertility.Drugs[dat$Risk_Factor_Fertility_Drugs == 'Y'] = 1
+#dat$Risk.Factor.Fertility.Drugs[dat$Risk_Factor_Fertility_Drugs == 'N'] = 2
+#dat$Risk.Factor.Fertility.Drugs[dat$Risk_Factor_Fertility_Drugs == 'U'] = 9
+#dat$Risk.Factor.Fertility.Drugs[dat$Risk_Factor_Fertility_Drugs == 'X'] = 3
+
+dat$Risk.Factor.Fertility.Drugs  <- ifelse(is.na(dat$Risk_Factor_Fertility_Drugs),9999,
+                                           ifelse(dat$Risk_Factor_Fertility_Drugs == ' ',9999,       
+                                                  ifelse(dat$Risk_Factor_Fertility_Drugs == 'Y',1,       
+                                                         ifelse(dat$Risk_Factor_Fertility_Drugs == 'N',2,       
+                                                                ifelse(dat$Risk_Factor_Fertility_Drugs == 'U',3, 
+                                                                       9)))))
+
+# dat$Risk.Factor.Fertility.Drugs[dat$Risk.Factor.Fertility.Drugs == 9999]
+
+dat$Risk.Factor.Fertility.Drugs.Unknown <- ifelse(dat$Risk.Factor.Fertility.Drugs == 9 | 
+                                                    dat$Risk.Factor.Fertility.Drugs == 9999,1,0)
+dat$Risk.Factor.Fertility.Drugs.Yes <- ifelse(dat$Risk.Factor.Fertility.Drugs == 1,1,0)
+dat$Risk.Factor.Fertility.Drugs.No <- ifelse(dat$Risk.Factor.Fertility.Drugs == 2,1,0)
+dat$Risk.Factor.Fertility.Drugs.NotApplicable <- ifelse(dat$Risk.Factor.Fertility.Drugs == 3,1,0)
+
+
+########## Asst..Reproductive.Technology
+
+
+# recode risk for assistive repro tech map to codes in data definitions and handle NAs
+
+#dat$Asst..Reproductive.Technology[is.na(dat$Asst..Reproductive.Technology)] = 9999
+#dat$Asst..Reproductive.Technology[dat$Asst..Reproductive.Technology == ' '] = 9999
+#dat$Asst..Reproductive.Technology[dat$Asst..Reproductive.Technology == 'Y'] = 1
+#dat$Asst..Reproductive.Technology[dat$Asst..Reproductive.Technology == 'N'] = 2
+#dat$Asst..Reproductive.Technology[dat$Asst..Reproductive.Technology == 'U'] = 9
+#dat$Asst..Reproductive.Technology[dat$Asst..Reproductive.Technology == 'X'] = 3
+
+dat$Asst.Reproductive_Technology  <- ifelse(is.na(dat$Asst._Reproductive_Technology),9999,
+                                            ifelse(dat$Asst._Reproductive_Technology == ' ',9999,       
+                                                   ifelse(dat$Asst._Reproductive_Technology == 'Y',1,       
+                                                          ifelse(dat$Asst._Reproductive_Technology == 'N',2,       
+                                                                 ifelse(dat$Asst._Reproductive_Technology == 'U',3, 
+                                                                        9)))))
+
+dat$Asst.Reproductive_Technology.Unknown <- ifelse(dat$Asst.Reproductive_Technology == 9 | 
+                                                     dat$Asst.Reproductive_Technology == 9999,1,0)
+dat$Asst_Reproductive_Technology.Yes <- ifelse(dat$Asst.Reproductive_Technology == 1,1,0)
+dat$Asst.Reproductive_Technology.No <- ifelse(dat$Asst.Reproductive_Technology == 2,1,0)
+dat$Asst.Reproductive_Technology.NotApplicable <- ifelse(dat$Asst.Reproductive_Technology == 3,1,0)
+
+
+########## Previous.Ceasarians
+
+# recode risk for prev cessarians map to codes in data definitions and handle NAs
+#dat$Previous.Ceasarians[is.na(dat$Previous.Ceasarians)] = 9999
+#dat$Previous.Ceasarians[dat$Previous.Ceasarians == ' '] = 9999
+#dat$Previous.Ceasarians[dat$Previous.Ceasarians == 'Y'] = 1
+#dat$Previous.Ceasarians[dat$Previous.Ceasarians == 'N'] = 2
+#dat$Previous.Ceasarians[dat$Previous.Ceasarians == 'U'] = 9
+
+dat$Previous.Ceasarians  <- ifelse(is.na(dat$Previous_Ceasarians),9999,
+                                   ifelse(dat$Previous_Ceasarians == ' ',9999,       
+                                          ifelse(dat$Previous_Ceasarians == 'Y',1,       
+                                                 ifelse(dat$Previous_Ceasarians == 'N',2,       
+                                                        ifelse(dat$Previous_Ceasarians == 'U',3, 
+                                                               9)))))
+
+dat$Previous.Ceasarians.Unknown <- ifelse(dat$Previous.Ceasarians == 9 | 
+                                            dat$Previous.Ceasarians == 9999,1,0)
+dat$Previous.Ceasarians.Yes <- ifelse(dat$Previous.Ceasarians == 1,1,0)
+dat$Previous.Ceasarians.No <- ifelse(dat$Previous.Ceasarians == 2,1,0)
+dat$Previous.Ceasarians.NotApplicable <- ifelse(dat$Previous.Ceasarians == 3,1,0)
+
+
+########## Previous_Cesareans_Number
+
+# recode  prev cessarians map to codes in data definitions and handle NAs  
+# THERE ARE ZERO NAs
+# dat$Previous_Cesarians_Number[is.na(dat$Previous_Cesarians_Number)] = 9999
+
+# dat$Previous_Cesarians_Number[dat$Previous_Cesarians_Number == 9999]
+
+# recode delivery method map to codes in data definitions and handle NAs
+
+
+
+########## Fetal Presentation
+
+# THERE ARE ZERO NAs
+#dat$Fetal_Presentation[is.na(dat$Fetal_Presentation)] = 9999
+#dat$Fetal_Presentation[dat$Fetal_Presentation == 9999]
+
+dat$Fetal.Presentation <- dat$Fetal_Presentation
+
+dat$Fetal.Presentation.Unknown <- ifelse(dat$Fetal.Presentation == 9,1,0 )
+dat$Fetal.Presentation.Cephalic <- ifelse(dat$Fetal.Presentation == 1,1,0)
+dat$Fetal.Presentation.Breech <- ifelse(dat$Fetal.Presentation == 2,1,0)
+dat$Fetal.Presentation.Other <- ifelse(dat$Fetal.Presentation == 3,1,0)
+
+
+########## Delivery Trial
+
+# recode delivery trial map to codes in data definitions and handle NAs
+#dat$Delivery.trial[is.na(dat$Delivery.trial)] = 9999
+#dat$Delivery.trial[dat$Delivery.trial == ' '] = 9999
+#dat$Delivery.trial[dat$Delivery.trial == 'Y'] = 1
+#dat$Delivery.trial[dat$Delivery.trial == 'N'] = 2
+#dat$Delivery.trial[dat$Delivery.trial == 'U'] = 9
+#dat$Delivery.trial[dat$Delivery.trial == 'X'] = 3
+
+dat$Delivery.trial  <- ifelse(is.na(dat$Delivery_trial),9999,
+                              ifelse(dat$Delivery_trial == ' ',9999,       
+                                     ifelse(dat$Delivery_trial == 'Y',1,       
+                                            ifelse(dat$Delivery_trial == 'N',2,       
+                                                   ifelse(dat$Delivery_trial == 'X',3, 
+                                                          9)))))
+
+dat$Delivery.trial.Unknown <- ifelse(dat$Delivery.trial == 9 | 
+                                       dat$Delivery.trial == 9999,1,0)
+dat$Delivery.trial.Yes <- ifelse(dat$Delivery.trial == 1,1,0)
+dat$Delivery.trial.No <- ifelse(dat$Delivery.trial == 2,1,0)
+dat$Delivery.trial.NotApplicable <- ifelse(dat$Delivery.trial == 3,1,0)
+
+
+########## Delivery Method
+
+# THERE ARE ZERO NAs
+# recode delivery method map to codes in data definitions and handle NAs
+#dat$Delivery_Method.[is.na(dat$Delivery_Method)] = 9999
+dat$Delivery_Method[dat$Delivery_Method == 5]
+
+dat$Delivery.Method <- dat$Delivery_Method
+
+dat$Delivery.Method.NotStated <- ifelse(dat$Delivery.Method == 9 | 
+                                          dat$Delivery.Method == 9999,1,0)
+dat$Delivery.Method.Vaginal <- ifelse(dat$Delivery.Method == 1,1,0)
+dat$Delivery.Method.VaginalAfterPreviousCSection <- ifelse(dat$Delivery.Method == 2,1,0)
+dat$Delivery.Method.PrimaryCSection <- ifelse(dat$Delivery.Method == 3,1,0)
+dat$Delivery.Method.RepeatCSection <- ifelse(dat$Delivery.Method == 4,1,0)
+dat$Delivery.Method.VaginalUnknownPrevCSection <- ifelse(dat$Delivery.Method == 5,1,0)
+dat$Delivery.Method.CSectionUnknownPrevCSection <- ifelse(dat$Delivery.Method == 6,1,0)
+
+
+########## Delivery Route
+
+
+# THERE ARE ZERO NAs
+# recode delivery route map to codes in data definitions and handle NAs
+# dat$Delivery_Route[is.na(dat$Delivery_Route)] = 9999
+# dat$Delivery_Route[dat$Delivery_Route == 9999]
+
+dat$Delivery.Route <- dat$Delivery_Route
+
+dat$Delivery.Route.Unknown <- ifelse(dat$Delivery.Route == 9 | 
+                                       dat$Delivery.Route == 9999,1,0)
+dat$Delivery.Route.Spontaneous <- ifelse(dat$Delivery.Route == 1,1,0)
+dat$Delivery.Route.Foreceps <- ifelse(dat$Delivery.Route == 2,1,0)
+dat$Delivery.Route.Vacuum <- ifelse(dat$Delivery.Route == 3,1,0)
+dat$Delivery.Route.Cesarean <- ifelse(dat$Delivery.Route == 4,1,0)
+
+dat$Delivery.Route.Spontaneous
+dat$Delivery.Route.Cesarean
+
+
+########## Ruptured Uterus
+
+# recode Ruotured uterus map to codes in data definitions and handle NAs
+#dat$Ruotured.Uterus[is.na(dat$Ruotured.Uterus)] = 9999
+#dat$Ruotured.Uterus[dat$Ruotured.Uterus == ' '] = 9999
+#dat$Ruotured.Uterus[dat$Ruotured.Uterus == 'Y'] = 1
+#dat$Ruotured.Uterus[dat$Ruotured.Uterus == 'N'] = 2
+#dat$Ruotured.Uterus[dat$Ruotured.Uterus == 'U'] = 9
+
+dat$Ruotured.Uterus  <- ifelse(is.na(dat$Ruotured_Uterus),9999,
+                        ifelse(dat$Ruotured_Uterus == ' ',9999,       
+                        ifelse(dat$Ruotured_Uterus == 'Y',1,       
+                        ifelse(dat$Ruotured_Uterus == 'N',2, 
+                        ifelse(dat$Ruotured_Uterus == 'U',3,
+                        9)))))
+
+# THERE ARE ZERO NAs
+#dat$Ruotured.Uterus[dat$Ruotured.Uterus== 9999]
+
+dat$Ruotured.Uterus.Unknown <- ifelse(dat$Ruotured.Uterus == 9 | 
+                                        dat$Ruotured.Uterus == 9999,1,0)
+dat$Ruotured.Uterus.Yes <- ifelse(dat$Ruotured.Uterus == 1,1,0)
+dat$Ruotured.Uterus.No <- ifelse(dat$Ruotured.Uterus == 2,1,0)
+dat$Ruotured.Uterus.Unknown <- ifelse(dat$Ruotured.Uterus == 3,1,0)
+
+
+
+########## Mother to ICU
+
+# recodeICU admission to map to codes in data definitions and handle NAs
+#dat$Mother.admitted.to.ICU[is.na(dat$Mother.admitted.to.ICU)] = 9999
+#dat$Mother.admitted.to.ICU[dat$Mother.admitted.to.ICU == ' '] = 9999
+#dat$Mother.admitted.to.ICU[dat$Mother.admitted.to.ICU == 'Y'] = 1
+#dat$Mother.admitted.to.ICU[dat$Mother.admitted.to.ICU == 'N'] = 2
+#dat$Mother.admitted.to.ICU[dat$Mother.admitted.to.ICU == 'U'] = 9
+
+dat$Mother.admitted.to.ICU  <- ifelse(is.na(dat$Mother_admitted_to_ICU),9999,
+                               ifelse(dat$Mother_admitted_to_ICU == ' ',9999,       
+                               ifelse(dat$Mother_admitted_to_ICU == 'Y',1,       
+                               ifelse(dat$Mother_admitted_to_ICU == 'N',2, 
+                               ifelse(dat$Mother_admitted_to_ICU == 'U',3,
+                               9)))))
+
+dat$Mother.admitted.to.ICU.Unknown <- ifelse(dat$Mother.admitted.to.ICU == 9 | 
+                                               dat$Mother.admitted.to.ICU == 9999,1,0)
+dat$Mother.admitted.to.ICU.Yes <- ifelse(dat$Mother.admitted.to.ICU == 1,1,0)
+dat$Mother.admitted.to.ICU.No <- ifelse(dat$Mother.admitted.to.ICU == 2,1,0)
+dat$Mother.admitted.to.ICU.Unknown <- ifelse(dat$Mother.admitted.to.ICU == 3,1,0)
+
+dat <- subset(dat,select = -c(Mothers.Race,
+                              Mothers_Race,
+                              Mothers.Education,
+                              Mothers_Education,
+                              Risk.Factor.Diabetes,
+                              Risk_Factor_Diabetes,
+                              Risk.Factor.Gestational.Diabetes,
+                              Risk_Factor_Gestational_Diabetes,
+                              PrePregnancy.Hypertension,
+                              PrePregnancy_Hypertension))
+
+dat <- subset(dat,select = -c(Risk.Factor.Gestational.Hypertension,
+                              Risk_Factor_Gestational_Hypertension,
+                              Risk.Factor.Hypertension.Eclampsia,
+                              Risk_Factor_Hypertension_Eclampsia,
+                              Risk.Factor.Infertility.Treatment,
+                              Risk_Factor_Infertility_Treatment,
+                              Risk.Factor.Fertility.Drugs,
+                              Risk_Factor_Fertility_Drugs,
+                              Asst.Reproductive_Technology,
+                              Asst._Reproductive_Technology,
+                              Previous.Ceasarians,
+                              Previous_Ceasarians,
+                              Fetal.Presentation,
+                              Fetal_Presentation,
+                              Delivery.trial,
+                              Delivery_trial,
+                              Delivery_Method,
+                              Delivery.Method,
+                              Delivery.Route,
+                              Delivery_Route,
+                              Ruotured.Uterus,
+                              Ruotured_Uterus,
+                              Mother.admitted.to.ICU,
+                              Mother_admitted_to_ICU))
+
+# Remove these as they are going to be the base case
+
+dat <- subset(dat,select = -c(Mothers.Race.White,
+                              Mothers.Education.Unknown,
+                              Risk.Factor.Diabetes.Unknown,
+                              Risk.Factor.Gestational.Diabetes.Unknown,
+                              PrePregnancy.Hypertension.Unknown,
+                              Risk.Factor.Gestational.Hypertension.Unknown,
+                              Risk.Factor.Hypertension.Eclampsia.Unknown,
+                              Risk.Factor.Fertility.Drugs.Unknown,
+                              Asst.Reproductive_Technology.Unknown,
+                              Previous.Ceasarians.Unknown,
+                              Fetal.Presentation.Unknown,
+                              Delivery.trial.Unknown,
+                              Delivery.Method.NotStated,
+                              Delivery.Route.Unknown,
+                              Ruotured.Uterus.Unknown,
+                              Mother.admitted.to.ICU.Unknown
+                              ))
+
+#ulst <- lapply(dat, unique)
+#ulst
+
+#mod = glm(Survived ~. , data = dat)
+#summary(mod)
+
+if (!require("caret")) install.packages("caret")
+library(caret)
+
+if (!require("pROC")) install.packages("pROC")
+library(pROC)
+
+if (!require("car")) install.packages("car")
+library(car)
+
+# Split the data into training and testing sets
+set.seed(123) # Ensuring reproducibility
+split <- createDataPartition(dat$Survived, p = 0.7, list = FALSE)
+train_data <- dat[split, ]
+test_data <- dat[-split, ]
+
+my_train_data <- train_data
+
+rm(dat)
+
+# Fit a logistic regression model on the training data
+# fit <- glm(Survived ~ ., data = my_train_data, family = binomial())
+# 
+# # Summary of the model to inspect coefficients
+# summary(fit)
+# 
+# # Calculate VIF using the logistic regression model fit
+# # vif_results <- vif(fit)
+# # print(vif_results)
+# 
+# # Predict on the test data using predicted probabilities
+# predictions <- predict(fit, newdata = test_data, type = "response")
+# 
+# # Calculate the ROC curve using actual classes and predicted probabilities
+# roc_curve <- roc(test_data$Survived, predictions)
+# 
+# # Plotting the ROC curve
+# plot(roc_curve, main="ROC Curve")
+# abline(a=0, b=1, lty=2, col="gray")
+# 
+# # Creating the confusion matrix
+# predicted_classes <- ifelse(predictions > 0.5, 1, 0)
+# conf_matrix <- table(Predicted = predicted_classes, Actual = test_data$Survived)
+# print(conf_matrix)
+# 
+# # Calculate accuracy
+# accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+# print(paste("Accuracy:", accuracy))
+# 
+# # Print out the confusion matrix from the caret package
+# confusionMatrix <- confusionMatrix(as.factor(predicted_classes), as.factor(test_data$Survived))
+# print(confusionMatrix)
+
+# Drop some columns based on intitial run
+
+# First iterative model
+
+# my_train_data_narrow_old <- subset(my_train_data, select=c(Time, 
+#                                                        Mothers_Age  ,  
+#                                                        Interval_Since_Last_Birth   ,               
+#                                                        Monthly_PreNatal_Care_egan ,   
+#                                                        Cigarettes_before_pregnancy,
+#                                                        Mothers_Height ,                              
+#                                                        attendant       ,                             
+#                                                        Plurality        ,                           
+#                                                        gender                      ,              
+#                                                        Birthweight_in_grmas                 ,        
+#                                                        Mothers.Race.Black                      ,    
+#                                                        Mothers.Race.Nhopi                       ,  
+#                                                        Mothers.Education.HighSchoolNoDiploma     ,   
+#                                                        Mothers.Education.HighSchoolGradOrGed     ,   
+#                                                        Mothers.Education.SomeCollegeNoDegree    , 
+#                                                        Mothers.Education.Masters,
+#                                                        Risk.Factor.Gestational.Diabetes.Yes,
+#                                                        PrePregnancy.Hypertension.Yes      ,   
+#                                                        Risk.Factor.Fertility.Drugs.Yes,
+#                                                        Fetal.Presentation.Cephalic    ,             
+#                                                        Delivery.Route.Spontaneous     ,            
+#                                                        Delivery.Route.Foreceps   ,
+#                                                        Survived
+# ))
+# 
+# my_test_data_narrow_old <- subset(test_data, select=c(Time, 
+#                                                   Mothers_Age  ,  
+#                                                   Interval_Since_Last_Birth   ,               
+#                                                   Monthly_PreNatal_Care_egan ,   
+#                                                   Cigarettes_before_pregnancy,
+#                                                   Mothers_Height ,                              
+#                                                   attendant       ,                             
+#                                                   Plurality        ,                           
+#                                                   gender                      ,              
+#                                                   Birthweight_in_grmas                 ,        
+#                                                   Mothers.Race.Black                      ,    
+#                                                   Mothers.Race.Nhopi                       ,  
+#                                                   Mothers.Education.HighSchoolNoDiploma     ,   
+#                                                   Mothers.Education.HighSchoolGradOrGed     ,   
+#                                                   Mothers.Education.SomeCollegeNoDegree    , 
+#                                                   Mothers.Education.Masters,
+#                                                   Risk.Factor.Gestational.Diabetes.Yes,
+#                                                   PrePregnancy.Hypertension.Yes      ,   
+#                                                   Risk.Factor.Fertility.Drugs.Yes,
+#                                                   Fetal.Presentation.Cephalic    ,             
+#                                                   Delivery.Route.Spontaneous     ,            
+#                                                   Delivery.Route.Foreceps   ,
+#                                                   Survived
+# ))
+# 
+# 
+# model_v1 <- glm(Survived ~ ., data = my_train_data_narrow_old, family = binomial(), maxit=20)
+# summary(model_v1)
+
+my_train_data_narrow <- subset(my_train_data, select=c(Time, 
+                                                       Mothers_Age  ,  
+                                                       Interval_Since_Last_Birth   ,               
+                                                       Monthly_PreNatal_Care_egan ,                
+                                                       Mothers_Height ,                              
+                                                       attendant       ,                             
+                                                       Plurality        ,                           
+                                                       gender                      ,              
+                                                       Birthweight_in_grmas                 ,        
+                                                       Mothers.Race.Black                      ,    
+                                                       Mothers.Race.Nhopi                       ,  
+                                                       Mothers.Education.HighSchoolNoDiploma     ,   
+                                                       Mothers.Education.HighSchoolGradOrGed     ,   
+                                                       Mothers.Education.SomeCollegeNoDegree    ,   
+                                                       PrePregnancy.Hypertension.Yes      ,         
+                                                       Fetal.Presentation.Cephalic    ,             
+                                                       Delivery.Route.Spontaneous     ,            
+                                                       Delivery.Route.Foreceps   ,
+                                                       Survived
+))
+
+my_test_data_narrow <- subset(test_data, select=c(Time, Mothers_Age  ,  
+                                                  Interval_Since_Last_Birth   ,               
+                                                  Monthly_PreNatal_Care_egan ,                
+                                                  Mothers_Height ,                              
+                                                  attendant       ,                             
+                                                  Plurality        ,                           
+                                                  gender                      ,              
+                                                  Birthweight_in_grmas                 ,        
+                                                  Mothers.Race.Black                      ,    
+                                                  Mothers.Race.Nhopi                       ,  
+                                                  Mothers.Education.HighSchoolNoDiploma     ,   
+                                                  Mothers.Education.HighSchoolGradOrGed     ,   
+                                                  Mothers.Education.SomeCollegeNoDegree    ,   
+                                                  PrePregnancy.Hypertension.Yes      ,         
+                                                  Fetal.Presentation.Cephalic    ,             
+                                                  Delivery.Route.Spontaneous     ,            
+                                                  Delivery.Route.Foreceps   ,
+                                                  Survived
+))
+
+
+model_both <- glm(Survived ~ ., data = my_train_data_narrow, family = binomial(), maxit=20)
+summary(model_both)
+
+# Calculate VIF using the logistic regression model fit
+vif_results <- vif(model_both)
+print(vif_results)
+
+# Predict on the test data using predicted probabilities
+predictions <- predict(model_both, newdata = my_test_data_narrow, type = "response")
+
+# Calculate the ROC curve using actual classes and predicted probabilities
+roc_curve <- roc(test_data$Survived, predictions)
+
+# Plotting the ROC curve
+plot(roc_curve, main="ROC Curve")
+abline(a=0, b=1, lty=2, col="gray")
+
+# Generate predictions and Creating the confusion matricies
+
+seq <- seq(0.05, 0.5, by = 0.05)
+seq
+
+for(x in seq){
+  print(x)
+  predicted_classes <- ifelse(predictions > x, 1, 0)
+  conf_matrix <- table(Predicted = predicted_classes, Actual = test_data$Survived)
+  print(conf_matrix)
+
+  # Calculate accuracy
+  accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+  print(paste("Accuracy:", accuracy))
+
+  # Print out the confusion matrix from the caret package
+  confusionMatrix <- confusionMatrix(as.factor(predicted_classes), as.factor(test_data$Survived))
+  print(confusionMatrix)
+}
