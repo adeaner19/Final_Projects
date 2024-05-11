@@ -12,3 +12,6 @@ This repository is made available to showcase my skills and serve as a platform 
 ## Repository of Projects
 
 
+### Infant Mortality in the US
+### Code: https://github.com/adeaner19/Final_Projects/blob/e891894a304b73a0ae6bf3833fe75da322520cdb/Infant%20Mortality/Code
+### Final Report: [Factors Contributing to Infant Mortality in the US.pdf](https://github.com/adeaner19/Final_Projects/files/15283664/Factors.Contributing.to.Infant.Mortality.in.the.US.pdf)
