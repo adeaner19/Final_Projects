@@ -1,2 +1,2 @@
 # Final_Projects
-Projects I've completed throughout my journey
+Hi! I'm Andrew Dean, a seasoned financial professional with over a decade of experience in leadership, strategy, and consulting. Currently studying for my Masters in Analytics from the Georgia Institute of Technology. I currently head a Finance & Accounting department at a financial advisory firm in Michigan. Looking to deploy my skillset in a new career path of data analytics preferably in the gaming industry.
