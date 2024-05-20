@@ -3,7 +3,7 @@
 ## About
 :wave: Hi! I'm Andrew Dean, a seasoned financial professional with over a decade of experience in leadership, strategy, and consulting. Actively pursuing my Masters in Analytics from the Georgia Institute of Technology. I currently head the Finance, Accounting, & Operations at a private wealth financial advisory firm in Michigan. Looking to deploy my skillset in a new exciting career path of data analytics preferably in the gaming industry.
 
-#### My current resume: [Andrew Dean Resume 2024, CFA, CAIA.pdf](https://github.com/adeaner19/Final_Projects/files/15381041/Andrew.Dean.Resume.2024.CFA.CAIA.pdf)
+#### My current resume: [Andrew Dean, CFA, CAIA - Resume 2024.pdf](https://github.com/adeaner19/Final_Projects/files/15381041/Andrew.Dean.Resume.2024.CFA.CAIA.pdf)
 
 
 
