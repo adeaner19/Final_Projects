@@ -14,7 +14,7 @@ This repository is made available to showcase my skills and serve as a platform 
 
 ### Pokemon Game Balance & Tiers with Optimization
 Project was aimed to see if machine learning could create a tiered system via k-means and PCA. Then determine if the game was balanced or not looking at various statistical measures. Also takes a stab at optimization of a 6-Pokemon team.
-#### Final Report: [Pokemon Game Balance & Optimization]([https://github.com/adeaner19/Final_Projects/tree/a40d263c38029effbdd999574af12de01dfda29c/Pokemon_Game_Balance_Analysis](https://github.com/adeaner19/Final_Projects/blob/a40d263c38029effbdd999574af12de01dfda29c/Pokemon_Game_Balance_Analysis/Fall2024_Project_213.pdf)
+#### Final Report: [Pokemon Game Balance & Optimization](https://github.com/adeaner19/Final_Projects/tree/a40d263c38029effbdd999574af12de01dfda29c/Pokemon_Game_Balance_Analysis](https://github.com/adeaner19/Final_Projects/blob/a40d263c38029effbdd999574af12de01dfda29c/Pokemon_Game_Balance_Analysis/Fall2024_Project_213.pdf)
 
 ### World of Warcraft PvP Balance
 Project was aimed to review World of Warcraft battleground data and to determine if the game was considered "balanced" at this point and time. Analysis was done in python and looks at win rates between faction, classes, and battleground map. Code done in python and graphs done in matplotlib and Seaborn packages. 
